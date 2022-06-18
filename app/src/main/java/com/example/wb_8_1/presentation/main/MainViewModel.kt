@@ -1,46 +1,51 @@
 package com.example.wb_8_1.presentation.main
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.liveData
 import com.example.wb_8_1.utils.Resource
 import com.example.wb_8_1.domain.model.DotaHeroModelDomain
 import com.example.wb_8_1.domain.usecase.GetDotaHeroesListUseCase
 import kotlinx.coroutines.*
+import java.lang.Exception
 
 class MainViewModel(private val getDotaHeroesListUseCase: GetDotaHeroesListUseCase) : ViewModel() {
 
-    private val _dotaHeroesList = MutableLiveData<List<DotaHeroModelDomain>>()
-    val dotaHeroesList: LiveData<List<DotaHeroModelDomain>>
+    private val _dotaHeroesList = MutableLiveData<Resource<List<DotaHeroModelDomain>>>()
+    val dotaHeroesList: LiveData<Resource<List<DotaHeroModelDomain>>>
         get() = _dotaHeroesList
 
-    private val _loadingPermission = MutableLiveData<Boolean>()
-    val loadingPermission: LiveData<Boolean>
-        get() = _loadingPermission
+    private val vmJob = Job()
+    private val vmScope = CoroutineScope(Dispatchers.Main + vmJob)
 
     init {
-        _loadingPermission.value = true
+        getDotaHeroes()
     }
 
-    fun getDotaHeroes() = liveData(Dispatchers.IO) {
-        emit(Resource.Loading(data = null))
-        try {
-            Log.e("Loading", "Trying to load data from vm")
-            emit(Resource.Success(data = getDotaHeroesListUseCase.execute()))
-            Log.e("Loading", "Data loaded")
-        } catch (e: Exception) {
-            emit(Resource.Error(data = null, message = e.message ?: "Error Occurred!!!"))
+    private fun getDotaHeroes() {
+        vmScope.launch {
+            fillDotaHeroesList()
         }
     }
 
-    fun setDotaHeroesList(list: List<DotaHeroModelDomain>) {
-        _dotaHeroesList.value = list
+    private suspend fun fillDotaHeroesList(){
+        _dotaHeroesList.value = Resource.Loading(data = null)
+        _dotaHeroesList.value = getDotaHeroesListUseCaseExecuting()
     }
 
-    fun changeToFalseLoadingPermission() {
-        _loadingPermission.value = false
+    private suspend fun getDotaHeroesListUseCaseExecuting(): Resource<List<DotaHeroModelDomain>>? {
+        return withContext(Dispatchers.IO){
+            try {
+                Resource.Success(data = getDotaHeroesListUseCase.execute())
+            } catch (e: Exception){
+                Resource.Error(data = null, message = e.message ?: "Error Occurred!")
+            }
+        }
+    }
+
+    override fun onCleared() {
+        vmJob.cancel()
+        super.onCleared()
     }
 
 }

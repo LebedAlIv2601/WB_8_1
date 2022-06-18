@@ -1,5 +1,6 @@
 package com.example.wb_8_1.presentation.details
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -8,6 +9,7 @@ import android.view.ViewGroup
 import coil.load
 import com.example.wb_8_1.R
 import com.example.wb_8_1.databinding.FragmentDetailsBinding
+import com.example.wb_8_1.domain.model.DotaHeroModelDomain
 import com.example.wb_8_1.utils.Constants
 
 class DetailsFragment : Fragment() {
@@ -33,28 +35,31 @@ class DetailsFragment : Fragment() {
         }
     }
 
+    @SuppressLint("SetTextI18n")
     private fun setupUI() {
         binding?.apply {
 
-            detailsToolbar.title = arguments?.getString("name")
+            val hero = arguments?.getSerializable("hero") as DotaHeroModelDomain
 
-            heroNameDetailsTextView.text = arguments?.getString("name")
-            strTextView.text = arguments?.getString("base_str")
-            agiTextView.text = arguments?.getString("base_agi")
-            intTextView.text = arguments?.getString("base_int")
-            attackTypeTextView.text = arguments?.getString("attack_type")
-            baseHealthTextView.text = arguments?.getString("base_health")
-            baseManaTextView.text = arguments?.getString("base_mana")
-            baseMrTextView.text = arguments?.getString("base_mr")
-            baseArmorTextView.text = arguments?.getString("base_armor")
-            damageTextView.text = arguments?.getString("base_damage")
-            attackRangeTextView.text = arguments?.getString("attack_range")
-            moveSpeedTextView.text = arguments?.getString("move_speed")
-            legsTextView.text = arguments?.getString("legs")
+            detailsToolbar.title = hero.name
+
+            heroNameDetailsTextView.text = hero.name
+            strTextView.text = "${hero.baseStr.toInt()} + ${hero.strGain}"
+            agiTextView.text = "${hero.baseAgi.toInt()} + ${hero.agiGain}"
+            intTextView.text = "${hero.baseInt.toInt()} + ${hero.intGain}"
+            attackTypeTextView.text = hero.attackType
+            baseHealthTextView.text = "${hero.baseHealth.toInt()} + ${hero.baseHealthRegen}"
+            baseManaTextView.text = "${hero.baseMana.toInt()} + ${hero.baseManaRegen}"
+            baseMrTextView.text = "${hero.baseMr.toInt()}%"
+            baseArmorTextView.text = "${hero.baseArmor.toInt()}"
+            damageTextView.text = "${hero.baseAttackMin.toInt()} - ${hero.baseAttackMax.toInt()}"
+            attackRangeTextView.text = "${hero.attackRange.toInt()}"
+            moveSpeedTextView.text = "${hero.moveSpeed.toInt()}"
+            legsTextView.text = "${hero.legs}"
 
             heroIconDetailsImageView.load(
                 Constants.BASE_IMAGE_URL
-                        + arguments?.getString("icon")
+                        + hero.icon
             ) {
                 placeholder(R.drawable.dota_icon)
                 error(R.drawable.dota_icon)
@@ -62,7 +67,7 @@ class DetailsFragment : Fragment() {
 
             heroImageImageView.load(
                 Constants.BASE_IMAGE_URL
-                        + arguments?.getString("img")
+                        + hero.img
             ){
                 error(R.drawable.dota_icon)
             }

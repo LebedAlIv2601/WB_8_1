@@ -1,5 +1,7 @@
 package com.example.wb_8_1.domain.model
 
+import java.io.Serializable
+
 
 data class DotaHeroModelDomain(
 
@@ -48,4 +50,4 @@ data class DotaHeroModelDomain(
     val moveSpeed: Double,
 
     val legs: Int
-)
+) : Serializable

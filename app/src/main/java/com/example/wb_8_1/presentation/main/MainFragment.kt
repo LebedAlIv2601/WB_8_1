@@ -7,6 +7,7 @@ import androidx.fragment.app.Fragment
 import android.widget.Toast
 import android.widget.Toolbar
 import androidx.core.content.ContextCompat
+import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -26,8 +27,6 @@ class MainFragment : Fragment() {
     private var binding: FragmentMainBinding? = null
 
     private var adapter: MainAdapter? = null
-
-    private var loadingPermission = true
 
     private val vm: MainViewModel by viewModels {
         viewModelFactory
@@ -80,43 +79,33 @@ class MainFragment : Fragment() {
     }
 
     private fun setupObservers() {
-        vm.dotaHeroesList.observe(viewLifecycleOwner, Observer {
-            adapter?.submitList(it)
-            binding?.mainProgressBar?.visibility = View.GONE
-        })
-
-        vm.loadingPermission.observe(viewLifecycleOwner, Observer {
-            loadingPermission = it
-        })
-
-        if (loadingPermission) {
-
-            vm.getDotaHeroes().observe(viewLifecycleOwner, Observer { resource ->
-                when (resource) {
-                    is Resource.Success -> {
-                        if (resource.data != null) {
-                            vm.setDotaHeroesList(resource.data)
-                        }
-                    }
-                    is Resource.Error -> {
-                        Toast.makeText(context, resource.message, Toast.LENGTH_SHORT).show()
+        vm.dotaHeroesList.observe(viewLifecycleOwner, Observer { resource ->
+            when (resource) {
+                is Resource.Success -> {
+                    if (resource.data != null) {
+                        adapter?.submitList(resource.data)
                         binding?.mainProgressBar?.visibility = View.GONE
                     }
-                    is Resource.Loading -> {
-                        binding?.mainProgressBar?.visibility = View.VISIBLE
-                    }
                 }
-            })
-
-            vm.changeToFalseLoadingPermission()
-        }
+                is Resource.Error -> {
+                    Toast.makeText(context, resource.message, Toast.LENGTH_SHORT).show()
+                    binding?.mainProgressBar?.visibility = View.GONE
+                }
+                is Resource.Loading -> {
+                    binding?.mainProgressBar?.visibility = View.VISIBLE
+                }
+            }
+        })
     }
 
     private fun navigateToDetails(hero: DotaHeroModelDomain) {
 
         val detailsFragment = DetailsFragment()
 
-        detailsFragment.arguments = getHeroBundle(hero)
+        val heroInfoBundle = Bundle()
+        heroInfoBundle.putSerializable("hero", hero)
+
+        detailsFragment.arguments = heroInfoBundle
 
         parentFragmentManager.beginTransaction()
             .replace(R.id.fragment_container, detailsFragment)
@@ -124,34 +113,6 @@ class MainFragment : Fragment() {
             .commit()
     }
 
-
-
-    private fun getHeroBundle(hero: DotaHeroModelDomain): Bundle {
-        val heroInfoBundle = Bundle()
-        heroInfoBundle.putString("name", hero.name)
-        heroInfoBundle.putString("base_str", "${hero.baseStr.toInt()} + ${hero.strGain}")
-        heroInfoBundle.putString("base_agi", "${hero.baseAgi.toInt()} + ${hero.agiGain}")
-        heroInfoBundle.putString("base_int", "${hero.baseInt.toInt()} + ${hero.intGain}")
-        heroInfoBundle.putString("attack_type", hero.attackType)
-        heroInfoBundle.putString(
-            "base_health",
-            "${hero.baseHealth.toInt()} + ${hero.baseHealthRegen}"
-        )
-        heroInfoBundle.putString("base_mana", "${hero.baseMana.toInt()} + ${hero.baseManaRegen}")
-        heroInfoBundle.putString("base_armor", "${hero.baseArmor.toInt()}")
-        heroInfoBundle.putString("base_mr", "${hero.baseMr.toInt()}%")
-        heroInfoBundle.putString(
-            "base_damage",
-            "${hero.baseAttackMin.toInt()} - ${hero.baseAttackMax.toInt()}"
-        )
-        heroInfoBundle.putString("attack_range", "${hero.attackRange.toInt()}")
-        heroInfoBundle.putString("move_speed", "${hero.moveSpeed.toInt()}")
-        heroInfoBundle.putString("legs", "${hero.legs}")
-        heroInfoBundle.putString("icon", hero.icon)
-        heroInfoBundle.putString("img", hero.img)
-
-        return heroInfoBundle
-    }
 
     private fun setupRecyclerView() {
         adapter = MainAdapter { navigateToDetails(it) }
