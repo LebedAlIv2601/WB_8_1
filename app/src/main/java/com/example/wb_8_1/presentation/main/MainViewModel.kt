@@ -22,7 +22,7 @@ class MainViewModel(private val getDotaHeroesListUseCase: GetDotaHeroesListUseCa
         getDotaHeroes()
     }
 
-    private fun getDotaHeroes() {
+    fun getDotaHeroes() {
         vmScope.launch {
             fillDotaHeroesList()
         }

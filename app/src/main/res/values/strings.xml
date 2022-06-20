@@ -21,4 +21,6 @@
     <string name="date_of_creation_text">15.06.22</string>
     <string name="github_link">https://github.com/LebedAlIv2601/WB_8_1</string>
     <string name="main_menu_about_title">About</string>
+    <string name="error_mesage">Something went wrong! Please, try again</string>
+    <string name="try_again_button_text">Try again</string>
 </resources>

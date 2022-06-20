@@ -76,6 +76,14 @@ class MainFragment : Fragment() {
 
         }
 
+        binding?.mainDotaRefreshLayout?.setOnRefreshListener {
+            vm.getDotaHeroes()
+        }
+
+        binding?.mainTryAgainButton?.setOnClickListener {
+            binding?.mainTryAgainButton?.visibility = View.GONE
+            vm.getDotaHeroes()
+        }
     }
 
     private fun setupObservers() {
@@ -85,11 +93,14 @@ class MainFragment : Fragment() {
                     if (resource.data != null) {
                         adapter?.submitList(resource.data)
                         binding?.mainProgressBar?.visibility = View.GONE
+                        binding?.mainDotaRefreshLayout?.isRefreshing = false
                     }
                 }
                 is Resource.Error -> {
                     Toast.makeText(context, resource.message, Toast.LENGTH_SHORT).show()
                     binding?.mainProgressBar?.visibility = View.GONE
+                    binding?.mainTryAgainButton?.visibility = View.VISIBLE
+                    binding?.mainDotaRefreshLayout?.isRefreshing = false
                 }
                 is Resource.Loading -> {
                     binding?.mainProgressBar?.visibility = View.VISIBLE
